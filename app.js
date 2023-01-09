@@ -10,8 +10,9 @@ const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 var findOrCreate = require("mongoose-findorcreate");
 const encrypt = require("mongoose-encryption");
+const crypto = require('crypto');
 
-const port = process.env.PORT || 3000;
+// const port = process.env.PORT || 3000;
 // coment push changes
 const app = express();
 
@@ -41,8 +42,8 @@ const userSchema = new mongoose.Schema ({
 });
 
 
-var encKey = process.env.SOME_32BYTE_BASE64_STRING;
-var sigKey = process.env.SOME_64BYTE_BASE64_STRING;
+var encKey = "b60929eb8d716b3a129254767a482215";
+var sigKey = "f434f466c0897734dba0a5c485ba24ff9e1697f94d1fc3d261746671dda0e024";
 
 //32 bytes
 require('crypto').randomBytes(32, function(err, buffer) {
@@ -191,6 +192,6 @@ app.post("/login", function(req, res){   //RETREIVE THE HASH PASSWORD WHEN LOGIN
 });
 
 
-app.listen(port, function(){
+app.listen(3000, function(){
   console.log(`Server on port ${port}`);
 })
