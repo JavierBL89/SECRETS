@@ -42,22 +42,12 @@ const userSchema = new mongoose.Schema ({
 });
 
 
-var encKey = "b60929eb8d716b3a129254767a482215";
-var sigKey = "f434f466c0897734dba0a5c485ba24ff9e1697f94d1fc3d261746671dda0e024";
+var encKey = process.env.SOME_32BYTE_BASE64_STRING;
+var sigKey = process.env.SOME_64BYTE_BASE64_STRING;
 
-//32 bytes
-require('crypto').randomBytes(32, function(err, buffer) {
-    var token = buffer.toString('base64');
-});
-
-//64 bytes
-require('crypto').randomBytes(64, function(err, buffer) {
-    var token = buffer.toString('base64');
-});
-
+userSchema.plugin(encrypt, { encryptionKey: encKey, signingKey: sigKey });
 userSchema.plugin(passportLocalMongoose);
 userSchema.plugin(findOrCreate);
-userSchema.plugin(encrypt, { encryptionKey: encKey, signingKey: sigKey });
 
 
 const User = new mongoose.model("User", userSchema);
