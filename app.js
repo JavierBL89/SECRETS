@@ -12,7 +12,7 @@ var findOrCreate = require("mongoose-findorcreate");
 const encrypt = require("mongoose-encryption");
 const crypto = require('crypto');
 
-// const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 // coment push changes
 const app = express();
 
@@ -182,6 +182,6 @@ app.post("/login", function(req, res){   //RETREIVE THE HASH PASSWORD WHEN LOGIN
 });
 
 
-app.listen(3000, function(){
+app.listen(PORT, function(){
   console.log(`Server on port ${port}`);
 })
