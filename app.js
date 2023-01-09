@@ -10,6 +10,7 @@ const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 var findOrCreate = require("mongoose-findorcreate");
 const encrypt = require("mongoose-encryption");
+
 const port = process.env.PORT || 3000;
 // coment push changes
 const app = express();
@@ -39,8 +40,19 @@ const userSchema = new mongoose.Schema ({
   secret: [{type:String}],
 });
 
+
 var encKey = process.env.SOME_32BYTE_BASE64_STRING;
 var sigKey = process.env.SOME_64BYTE_BASE64_STRING;
+
+//32 bytes
+require('crypto').randomBytes(32, function(err, buffer) {
+    var token = buffer.toString('base64');
+});
+
+//64 bytes
+require('crypto').randomBytes(64, function(err, buffer) {
+    var token = buffer.toString('base64');
+});
 
 userSchema.plugin(passportLocalMongoose);
 userSchema.plugin(findOrCreate);
