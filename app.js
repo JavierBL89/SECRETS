@@ -9,7 +9,8 @@ const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 var findOrCreate = require("mongoose-findorcreate");
-
+const encrypt = require("mongoose-encryption");
+const PORT = process.env.PORT || 3000;
 
 const app = express();
 
@@ -38,8 +39,13 @@ const userSchema = new mongoose.Schema ({
   secret: [{type:String}],
 });
 
+var encKey = process.env.SOME_32BYTE_BASE64_STRING;
+var sigKey = process.env.SOME_64BYTE_BASE64_STRING;
+
 userSchema.plugin(passportLocalMongoose);
 userSchema.plugin(findOrCreate);
+userSchema.plugin(encrypt, { encryptionKey: encKey, signingKey: sigKey });
+
 
 const User = new mongoose.model("User", userSchema);
 
@@ -62,7 +68,9 @@ passport.deserializeUser(function(id, done) {
 passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: "http://localhost:3000/auth/google/callback"
+    // callbackURL: "http://localhost:3000/auth/google/callback"
+    callbackURL: "https://secrets-yj3o.onrender.com//auth/google/callback"
+
   },
   function(accessToken, refreshToken, profile, cb) {
     User.findOrCreate({ googleId: profile.id }, function (err, user) {
@@ -171,6 +179,6 @@ app.post("/login", function(req, res){   //RETREIVE THE HASH PASSWORD WHEN LOGIN
 });
 
 
-app.listen(3000, function(){
-  console.log("Server on port 3000");
+app.listen(PORT, function(){
+  console.log(`Server on port ${PORT}`);
 })
