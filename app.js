@@ -183,5 +183,5 @@ app.post("/login", function(req, res){   //RETREIVE THE HASH PASSWORD WHEN LOGIN
 
 
 app.listen(PORT, function(){
-  console.log(`Server on port ${port}`);
+  console.log(`Server on port ${PORT}`);
 })
