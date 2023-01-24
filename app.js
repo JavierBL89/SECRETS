@@ -8,8 +8,8 @@ const session = require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-var findOrCreate = require("mongoose-findorcreate");
-const encrypt = require("mongoose-encryption");
+var findOrCreate = require("mongoose-findorCreate")
+// const encrypt = require("mongoose-encryption");
 const crypto = require('crypto');
 
 // coment push changes
@@ -28,26 +28,25 @@ app.use(session({    //express-session code RIGHT BELOW ABOVE APP.USE
 }));
 
 app.use(passport.initialize());   /// INITIALITYING PASSPORT
+
 app.use(passport.session());
 
-mongoose.connect(process.env.DATABASE_URL || "mongodb://localhost:27017/userDb", {useNewUrlParser: true}, { useUnifiedTopology: true });
+mongoose.connect(process.env.DATABASE_URL || "mongodb://localhost:27017/secretsDb", {useNewUrlParser: true}, { useUnifiedTopology: true });
 mongoose.set('useCreateIndex', true);
 
 const userSchema = new mongoose.Schema ({
   email: String,
   password: String,
   googleId: String,
-  secret: [{type:String}],
+  secret: [String],
 });
 
+// var encKey = process.env.SOME_32BYTE_BASE64_STRING;
+// var sigKey = process.env.SOME_64BYTE_BASE64_STRING;
 
-var encKey = process.env.SOME_32BYTE_BASE64_STRING;
-var sigKey = process.env.SOME_64BYTE_BASE64_STRING;
-
-userSchema.plugin(encrypt, { encryptionKey: encKey, signingKey: sigKey });
+// userSchema.plugin(encrypt, { encryptionKey: encKey, signingKey: sigKey });
 userSchema.plugin(passportLocalMongoose);
 userSchema.plugin(findOrCreate);
-
 
 const User = new mongoose.model("User", userSchema);
 
@@ -55,8 +54,8 @@ passport.use(User.createStrategy()); //CREATES A LOCAL STRATEGY
                                      // TO AUTHENTICATE USERS USING
                                     // USERNAME AND PASSWORD, AND ALSO
                                     // TO SERIALIZE AND DESERIALIZE OUR USER
-
 // use static serialize and deserialize of model for passport session support
+
 passport.serializeUser(function(user, done) {
   done(null, user.id);
 });
@@ -70,9 +69,9 @@ passport.deserializeUser(function(id, done) {
 passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
-    // callbackURL: "http://localhost:3000/auth/google/callback"
-    callbackURL: "https://secrets-yj3o.onrender.com//auth/google/callback"
-
+    // callbackURL: "http://localhost:3000/auth/google/secrets"
+    callbackURL: "https://secrets-yj3o.onrender.com//auth/google/secrets",
+    userProfileURL: "https://www.googleapis.com/oauth2/v3/userinfo"
   },
   function(accessToken, refreshToken, profile, cb) {
     User.findOrCreate({ googleId: profile.id }, function (err, user) {
@@ -89,34 +88,29 @@ app.get("/auth/google",
 passport.authenticate("google", { scope: ['profile'] })
 );
 
-app.get('/auth/google/callback',
+app.get('/auth/google/secrets',
   passport.authenticate('google', { failureRedirect: '/login' }),
   function(req, res) {
     // Successful authentication, redirect home.
     res.redirect('/secrets');
   });
 
-
 app.get("/login", function(req,res){
   res.render("login");
 });
 
 app.get("/secrets", function(req, res){
-  User.find({"secret": {$ne: null}}, function(err, foundSecrets){
+  User.find({"secret": {$ne: null}}, function(err, foundUsers){
     if(err){
       console.log(err);
     }else{
-      if(foundSecrets){
-        res.render("secrets", {usersWithSecrets: foundSecrets});
+      if(foundUsers){
+        res.render("secrets", {usersWithSecrets: foundUsers});
       }
     }
-  })
+  });
 });
 
-app.get("/logout", function(req, res){
-  req.logout();
-  res.redirect("/");
-})
 
 app.get("/submit", function(req, res){
   if(req.isAuthenticated()){
@@ -129,7 +123,6 @@ app.get("/submit", function(req, res){
 app.post("/submit", function(req, res){
   const submittedSecret = req.body.secret;
   console.log(req.user);
-
     User.findById(req.user.id, function(err, foundUser){
       if(err){ console.log(err);
       }else{
@@ -142,13 +135,13 @@ app.post("/submit", function(req, res){
       }
     });
 });
+
 // ------- REGISTER-----
 app.get("/register", function(req, res){
   res.render("register");
 })
 
 app.post("/register", function(req, res){   //CREATING THE HASH PASSWORD
-
 User.register({username: req.body.username}, req.body.password, function(err, user){
   if(err){
     console.log(err);
@@ -159,15 +152,13 @@ User.register({username: req.body.username}, req.body.password, function(err, us
     });
   }
 });
-
 });
 
 app.post("/login", function(req, res){   //RETREIVE THE HASH PASSWORD WHEN LOGIN
-
   const user = new User({
     username: req.body.username,
     password: req.body.password
-  })
+  });
 
   req.login(user, function(err){
     if(err){
@@ -176,11 +167,14 @@ app.post("/login", function(req, res){   //RETREIVE THE HASH PASSWORD WHEN LOGIN
       passport.authenticate("local")(req, res, function(){
         res.redirect("/secrets");
       })}
-
     });
 });
 
+app.get("/logout", function(req, res){
+  req.logout();
+  res.redirect("/");
+});
 
-app.listen(3000, function(){
-  console.log("Server on port 3000");
-})
+  app.listen(3000, function() {
+    console.log("Server started on port 3000.");
+  });
