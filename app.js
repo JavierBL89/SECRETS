@@ -8,7 +8,7 @@ const session = require("express-session");
 const passport = require("passport");
 const passportLocalMongoose = require("passport-local-mongoose");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
-var findOrCreate = require("mongoose-findorCreate")
+var findOrCreate = require('mongoose-findorcreate')
 // const encrypt = require("mongoose-encryption");
 const crypto = require('crypto');
 
